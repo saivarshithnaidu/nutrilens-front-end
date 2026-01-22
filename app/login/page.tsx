@@ -15,11 +15,18 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/proxy/auth/login', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text();
+                console.error("Non-JSON response:", text); // Debugging
+                throw new Error("Server returned an unexpected response (HTML/Text). Check console.");
+            }
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Login failed');
