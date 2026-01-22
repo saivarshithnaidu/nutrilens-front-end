@@ -36,7 +36,7 @@ export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserP
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/foods")
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/foods`)
             .then((res) => res.json())
             .then((data) => setFoods(data))
             .catch((err) => console.error("Error loading foods:", err));
@@ -45,7 +45,7 @@ export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserP
     const calculate = async (food: FoodItem, portion: Portion): Promise<void> => {
         setLoading(true);
         try {
-            const res = await fetch("http://localhost:8000/api/check_food", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/check_food`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

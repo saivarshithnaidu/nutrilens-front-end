@@ -56,7 +56,7 @@ export default function Dashboard() {
     }, [preset]);
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/alerts')
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/alerts`)
             .then(res => {
                 if (!res.ok) throw new Error("Err");
                 return res.json();
@@ -103,7 +103,7 @@ export default function Dashboard() {
         const w = prompt("Enter current weight (kg):");
         if (w) {
             try {
-                await fetch("http://localhost:8000/api/log/weight", {
+                await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/log/weight`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ weight_kg: parseFloat(w) })
                 });
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
     const dismissAlert = (id: number): void => {
         setAlerts(prev => prev.filter(a => a.id !== id));
-        fetch(`http://localhost:8000/api/alerts/${id}/resolve`, { method: "POST" }).catch(e => console.error(e));
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/alerts/${id}/resolve`, { method: "POST" }).catch(e => console.error(e));
     };
 
     const remaining = (goal + burned) - consumed;

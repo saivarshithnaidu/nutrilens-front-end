@@ -22,7 +22,7 @@ export default function AdaptiveAdvice({ consumed, burned, water }: AdviceProps)
     useEffect(() => {
         // Debounce fetch
         const timer = setTimeout(() => {
-            fetch("http://localhost:8000/api/adaptive_advice", {
+            fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/adaptive_advice`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ consumed, burned, water })

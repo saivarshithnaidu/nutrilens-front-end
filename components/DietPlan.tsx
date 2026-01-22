@@ -19,7 +19,7 @@ export default function DietPlan() {
     const [expanded, setExpanded] = useState<boolean>(true);
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/diet_plan")
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/diet_plan`)
             .then(res => {
                 if (!res.ok) throw new Error("API Error");
                 return res.json();

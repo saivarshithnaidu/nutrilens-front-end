@@ -116,7 +116,7 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
 
         try {
             // Using full URL to backend
-            const res = await fetch("http://localhost:8000/api/analyze", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/analyze`, {
                 method: "POST",
                 body: formData
             });
