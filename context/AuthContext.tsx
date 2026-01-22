@@ -43,7 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
             // To be simpler, we will just call the backend directly from client if possible, 
             // OR better: use the proxy we set up.
             // Let's assume we create a proxy for /api/auth/* in Next.js
-            const res = await fetch('/api/proxy/auth/me', {
+            // Using direct backend URL
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
                 headers: { Authorization: `Bearer ${authToken}` }
             });
             if (res.ok) {

@@ -23,7 +23,7 @@ export default function Signup() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/proxy/auth/signup', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -33,6 +33,13 @@ export default function Signup() {
                     password: formData.password
                 })
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text();
+                console.error("Non-JSON response:", text);
+                throw new Error("Server returned an unexpected response (HTML/Text). Check console.");
+            }
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Signup failed');
