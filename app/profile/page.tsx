@@ -1,26 +1,53 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Profile() {
-    const router = useRouter();
-    const [formData, setFormData] = useState({
+interface FormData {
+    age: string;
+    gender: string;
+    height_cm: string;
+    weight_kg: string;
+    activity_level: string;
+    medical_conditions: string[];
+    daily_steps: string;
+}
+
+const getInitialFormData = (): FormData => {
+    if (typeof window === 'undefined') {
+        return {
+            age: '',
+            gender: 'male',
+            height_cm: '',
+            weight_kg: '',
+            activity_level: 'moderate',
+            medical_conditions: [],
+            daily_steps: '0'
+        };
+    }
+
+    try {
+        const saved = localStorage.getItem('userProfile');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Failed to parse saved profile:', e);
+    }
+
+    return {
         age: '',
         gender: 'male',
         height_cm: '',
         weight_kg: '',
         activity_level: 'moderate',
-        medical_conditions: [] as string[],
+        medical_conditions: [],
         daily_steps: '0'
-    });
+    };
+};
 
-    useEffect(() => {
-        // Load existing profile
-        const saved = localStorage.getItem('userProfile');
-        if (saved) {
-            setFormData(JSON.parse(saved));
-        }
-    }, []);
+export default function Profile() {
+    const router = useRouter();
+    const [formData, setFormData] = useState<FormData>(getInitialFormData);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
         const { name, value } = e.target;
