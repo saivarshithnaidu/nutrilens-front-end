@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ManualEntry from "./ManualEntry";
-import { Flame, Target, Settings, Activity, Scale, AlertOctagon, Camera } from "lucide-react";
+import { Settings, Scale, AlertOctagon, Camera } from "lucide-react";
 import WaterTracker from "./WaterTracker";
 import LiveStepTracker from "./LiveStepTracker";
 import AdaptiveAdvice from "./AdaptiveAdvice";
@@ -29,10 +29,10 @@ export default function Dashboard() {
     const [burned, setBurned] = useState<number>(0);
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [water, setWater] = useState<number>(0);
-    const [waterTarget, setWaterTarget] = useState<number>(2450);
-    const [waterAdvice, setWaterAdvice] = useState<string>("Start sipping!");
+    const waterTarget = 2450;
+    const waterAdvice = "Start sipping!";
     const [userProfile, setUserProfile] = useState<UserProfile>({
-        diet_preset: "maintenance",
+        diet_preset: preset,
         medical_conditions: ["diabetes"]
     });
     const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
@@ -45,8 +45,13 @@ export default function Dashboard() {
         "high_protein": 2200
     };
 
+    // Derive goal from preset to avoid setState in effect
+    const currentGoal = PRESETS[preset] || 2000;
     useEffect(() => {
-        setGoal(PRESETS[preset] || 2000);
+        setGoal(currentGoal);
+    }, [currentGoal]);
+
+    useEffect(() => {
         setUserProfile(prev => ({ ...prev, diet_preset: preset }));
     }, [preset]);
 
@@ -230,7 +235,7 @@ export default function Dashboard() {
                             <AlertOctagon className="w-4 h-4" /> Lens Insight
                         </h4>
                         <p className="text-sm text-purple-800 leading-relaxed">
-                            NutriLens is continuously analyzing your intake and activity signals to adjust your "Safe To Eat" limit. Stay active to unlock more food flexibility!
+                            NutriLens is continuously analyzing your intake and activity signals to adjust your &quot;Safe To Eat&quot; limit. Stay active to unlock more food flexibility!
                         </p>
                     </div>
                 </div>
