@@ -4,29 +4,38 @@ import { useState, useEffect } from "react";
 import ManualEntry from "./ManualEntry";
 import { Flame, Target, Settings, Activity, Scale, AlertOctagon, Camera } from "lucide-react";
 import WaterTracker from "./WaterTracker";
-import LiveStepTracker from "./LiveStepTracker"; // Changed from StepTracker
-import AdaptiveAdvice from "./AdaptiveAdvice"; // Changed from DietPlan
+import LiveStepTracker from "./LiveStepTracker";
+import AdaptiveAdvice from "./AdaptiveAdvice";
 import HealthAlert from "./HealthAlert";
-import FoodScannerModal from "./FoodScannerModal"; // Added Import
+import FoodScannerModal from "./FoodScannerModal";
+
+interface Alert {
+    id: number;
+    type: string;
+    severity: string;
+    message: string;
+    tests: string[];
+}
+
+interface UserProfile {
+    diet_preset: string;
+    medical_conditions: string[];
+}
 
 export default function Dashboard() {
-    const [preset, setPreset] = useState("maintenance");
-    const [goal, setGoal] = useState(2000);
-    const [consumed, setConsumed] = useState(0);
-    const [burned, setBurned] = useState(0);
-
-    const [alerts, setAlerts] = useState<any[]>([]);
-
-    // Water State
-    const [water, setWater] = useState(0);
-    const [waterTarget, setWaterTarget] = useState(2450);
-    const [waterAdvice, setWaterAdvice] = useState("Start sipping!");
-
-    // Simulated User Profile
-    const [userProfile, setUserProfile] = useState({
+    const [preset, setPreset] = useState<string>("maintenance");
+    const [goal, setGoal] = useState<number>(2000);
+    const [consumed, setConsumed] = useState<number>(0);
+    const [burned, setBurned] = useState<number>(0);
+    const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [water, setWater] = useState<number>(0);
+    const [waterTarget, setWaterTarget] = useState<number>(2450);
+    const [waterAdvice, setWaterAdvice] = useState<string>("Start sipping!");
+    const [userProfile, setUserProfile] = useState<UserProfile>({
         diet_preset: "maintenance",
         medical_conditions: ["diabetes"]
     });
+    const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
 
     const PRESETS: Record<string, number> = {
         "weight_loss": 1500,
@@ -42,8 +51,6 @@ export default function Dashboard() {
     }, [preset]);
 
     useEffect(() => {
-        // Create mock alert for Demo if API fails
-        // In prod: fetch('/api/alerts')
         fetch('http://localhost:8000/api/alerts')
             .then(res => {
                 if (!res.ok) throw new Error("Err");
@@ -54,7 +61,6 @@ export default function Dashboard() {
                 else throw new Error("Not Array");
             })
             .catch(() => {
-                // Mock Data for Viva Demo
                 setAlerts([{
                     id: 1, type: "low_intake", severity: "medium",
                     message: "Calorie intake has been very low (<1200 kcal) for 3 days.",
@@ -63,10 +69,7 @@ export default function Dashboard() {
             });
     }, []);
 
-    const [isScannerOpen, setIsScannerOpen] = useState(false);
-
     useEffect(() => {
-        // PCR Check: Auto-open scanner if requested from Home/Login flow
         const pendingScan = localStorage.getItem('pending_autoscan');
         if (pendingScan === 'true') {
             setIsScannerOpen(true);
@@ -74,27 +77,24 @@ export default function Dashboard() {
         }
     }, []);
 
-    const handleLogAdd = (calories: number) => {
+    const handleLogAdd = (calories: number): void => {
         setConsumed(prev => prev + calories);
     };
 
-    const handleScanSave = (calories: number, foodName: string) => {
+    const handleScanSave = (calories: number, foodName: string): void => {
         setConsumed(prev => prev + calories);
-        // Optional: Add to alerts or history list if it existed
         alert(`Added ${foodName} (${calories} kcal) to your daily intake.`);
     };
 
-    const handleLiveUpdate = (steps: number, burnedVal: number) => {
-        setConsumed(prev => prev); // No-op, just to keep TS happy if needed or remove this line
+    const handleLiveUpdate = (steps: number, burnedVal: number): void => {
         setBurned(burnedVal);
-        // In real app, we might debouce POST this to DB
     };
 
-    const handleWaterAdd = () => {
+    const handleWaterAdd = (): void => {
         setWater(prev => prev + 250);
     };
 
-    const handleWeightUpdate = async () => {
+    const handleWeightUpdate = async (): Promise<void> => {
         const w = prompt("Enter current weight (kg):");
         if (w) {
             try {
@@ -103,19 +103,17 @@ export default function Dashboard() {
                     body: JSON.stringify({ weight_kg: parseFloat(w) })
                 });
                 alert("Weight updated. Safety checks running.");
-                // Refresh alerts
                 window.location.reload();
             } catch (e) { console.error(e); }
         }
     };
 
-    const dismissAlert = (id: number) => {
+    const dismissAlert = (id: number): void => {
         setAlerts(prev => prev.filter(a => a.id !== id));
-        // Call API
         fetch(`http://localhost:8000/api/alerts/${id}/resolve`, { method: "POST" }).catch(e => console.error(e));
     };
 
-    const remaining = (goal + burned) - consumed; // Add burned back to budget
+    const remaining = (goal + burned) - consumed;
     const progress = Math.min((consumed / goal) * 100, 100);
 
     return (
@@ -126,7 +124,6 @@ export default function Dashboard() {
                 onSave={handleScanSave}
             />
 
-            {/* Insight Strip */}
             <div className="bg-black/80 backdrop-blur-md text-white p-3 rounded-full flex items-center justify-between px-6 shadow-xl sticky top-4 z-50">
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -137,14 +134,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Safety Alerts Area */}
             {alerts.length > 0 && (
                 <div className="space-y-4">
                     {alerts.map(a => <HealthAlert key={a.id} alert={a} onDismiss={dismissAlert} />)}
                 </div>
             )}
 
-            {/* Header / Preset Selector */}
             <div className="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-gray-900 to-gray-800 text-white p-6 rounded-2xl shadow-lg border-b-4 border-purple-500">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight flex items-center gap-2">
@@ -162,7 +157,7 @@ export default function Dashboard() {
                     </button>
 
                     <button
-                        onClick={handleWeightUpdate}
+                        onClick={() => void handleWeightUpdate()}
                         className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 backdrop-blur-sm transition"
                     >
                         <Scale className="w-4 h-4" /> Log Body Signal (Weight)
@@ -186,16 +181,12 @@ export default function Dashboard() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
-                {/* Main Stats Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Adaptive Advice Card (Dynamic) */}
                     <AdaptiveAdvice consumed={consumed} burned={burned} water={water} />
 
-                    {/* Big Calorie Display */}
                     <div className="bg-white p-8 rounded-3xl shadow-xl flex flex-col justify-center items-center relative overflow-hidden border border-gray-100 group">
                         <div className="absolute inset-0 bg-purple-50 opacity-30 z-0"></div>
 
-                        {/* Quick Camera Access in Card */}
                         <button
                             onClick={() => setIsScannerOpen(true)}
                             className="absolute top-4 right-4 p-3 bg-purple-100 rounded-full text-purple-600 hover:bg-purple-200 hover:scale-110 transition z-20"
@@ -212,7 +203,6 @@ export default function Dashboard() {
                             <span className="text-gray-400 font-medium">calories remaining for today</span>
                         </div>
 
-                        {/* Progress Bar */}
                         <div className="w-full max-w-md bg-gray-100 h-2 rounded-full mt-6 overflow-hidden relative">
                             <div
                                 className={`h-full transition-all duration-1000 ease-out ${remaining < 0 ? 'bg-red-500' : 'bg-purple-500'}`}
@@ -232,11 +222,9 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Sidebar Column */}
                 <div className="space-y-6">
                     <ManualEntry userProfile={userProfile} onAdd={handleLogAdd} />
 
-                    {/* Info Tips */}
                     <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100">
                         <h4 className="font-bold text-purple-900 mb-2 flex items-center gap-2">
                             <AlertOctagon className="w-4 h-4" /> Lens Insight

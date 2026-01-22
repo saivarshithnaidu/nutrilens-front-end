@@ -2,9 +2,21 @@
 import { useEffect, useState } from "react";
 import { Utensils, ChevronDown, ChevronUp } from "lucide-react";
 
+interface Meal {
+    food: string;
+    target_calories: number;
+    description: string;
+}
+
+interface DietPlanData {
+    daily_calories: number;
+    goal: string;
+    meals: Record<string, Meal>;
+}
+
 export default function DietPlan() {
-    const [plan, setPlan] = useState<any>(null);
-    const [expanded, setExpanded] = useState(true);
+    const [plan, setPlan] = useState<DietPlanData | null>(null);
+    const [expanded, setExpanded] = useState<boolean>(true);
 
     useEffect(() => {
         fetch("http://localhost:8000/api/diet_plan")

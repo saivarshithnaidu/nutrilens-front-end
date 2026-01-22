@@ -20,12 +20,20 @@ interface UserProfile {
     medical_conditions: string[];
 }
 
+interface CheckFoodResult {
+    calories: number;
+    recommendation: string;
+    traffic_light: 'red' | 'yellow' | 'green';
+    context_message: string;
+    warnings: string[];
+}
+
 export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserProfile, onAdd?: (calories: number) => void }) {
     const [foods, setFoods] = useState<FoodItem[]>([]);
     const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
     const [selectedPortion, setSelectedPortion] = useState<Portion | null>(null);
-    const [result, setResult] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState<CheckFoodResult | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         fetch("http://localhost:8000/api/foods")
@@ -34,7 +42,7 @@ export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserP
             .catch((err) => console.error("Error loading foods:", err));
     }, []);
 
-    const calculate = async (food: FoodItem, portion: Portion) => {
+    const calculate = async (food: FoodItem, portion: Portion): Promise<void> => {
         setLoading(true);
         try {
             const res = await fetch("http://localhost:8000/api/check_food", {
@@ -46,7 +54,7 @@ export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserP
                     user_profile: userProfile,
                 }),
             });
-            const data = await res.json();
+            const data: CheckFoodResult = await res.json();
             setResult(data);
         } catch (e) {
             console.error(e);
@@ -55,20 +63,20 @@ export default function ManualEntry({ userProfile, onAdd }: { userProfile: UserP
         }
     };
 
-    const handleFoodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const foodId = parseInt(e.target.value);
+    const handleFoodChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        const foodId = parseInt(e.target.value, 10);
         const food = foods.find((f) => f.id === foodId);
         setSelectedFood(food || null);
         setSelectedPortion(null);
         setResult(null);
     };
 
-    const handlePortionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handlePortionChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const pName = e.target.value;
         if (selectedFood) {
             const portion = selectedFood.portions.find((p) => p.name === pName);
             setSelectedPortion(portion || null);
-            if (portion) calculate(selectedFood, portion);
+            if (portion) void calculate(selectedFood, portion);
         }
     };
 

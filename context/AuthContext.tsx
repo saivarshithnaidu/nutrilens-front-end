@@ -19,10 +19,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }): React.ReactNode {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const router = useRouter();
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const fetchUser = async (authToken: string) => {
+    const fetchUser = async (authToken: string): Promise<void> => {
         try {
             // We need to proxy this request or call backend directly
             // For now, let's assume the Next.js API proxy handles /api/auth/me or we call backend directly
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 headers: { Authorization: `Bearer ${authToken}` }
             });
             if (res.ok) {
-                const userData = await res.json();
+                const userData: User = await res.json();
                 setUser(userData);
             } else {
                 logout();
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');

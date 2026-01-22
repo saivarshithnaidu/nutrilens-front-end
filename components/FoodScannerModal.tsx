@@ -2,6 +2,23 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Camera, RefreshCw, Check, AlertTriangle, ChevronRight, Edit2 } from "lucide-react";
 
+interface AnalysisResult {
+    calories: number;
+    food_name: string;
+    nutrition: Record<string, number>;
+    foods: Array<{
+        food_name: string;
+        quantity: number;
+        unit: string;
+        confidence: number;
+        nutrition_per_100g: {
+            protein_g: number;
+            carbs_g: number;
+            fat_g: number;
+        };
+    }>;
+}
+
 interface FoodScannerModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,7 +35,7 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
     const [imageBlob, setImageBlob] = useState<Blob | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [error, setError] = useState<string>('');
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
+    const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
     // Editing State
     const [editedCalories, setEditedCalories] = useState<number>(0);
@@ -33,7 +50,7 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
         return () => stopCamera();
     }, [isOpen, mode]);
 
-    const startCamera = async () => {
+    const startCamera = async (): Promise<void> => {
         try {
             setError('');
             const ms = await navigator.mediaDevices.getUserMedia({
@@ -56,15 +73,16 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
         }
     };
 
-    const handleCapture = () => {
+    const handleCapture = (): void => {
         if (!videoRef.current || !canvasRef.current) return;
 
         const ctx = canvasRef.current.getContext('2d');
+        if (!ctx) return;
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
 
         // Draw video to canvas
-        ctx?.drawImage(videoRef.current, 0, 0);
+        ctx.drawImage(videoRef.current, 0, 0);
 
         // Get Blob
         canvasRef.current.toBlob((blob) => {
@@ -77,7 +95,7 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
         }, 'image/jpeg', 0.9);
     };
 
-    const handleRetake = () => {
+    const handleRetake = (): void => {
         setMode('camera');
         setAnalysisResult(null);
         setImageBlob(null);
@@ -85,7 +103,7 @@ export default function FoodScannerModal({ isOpen, onClose, onSave }: FoodScanne
         setPreviewUrl(null);
     };
 
-    const handleAnalyze = async () => {
+    const handleAnalyze = async (): Promise<void> => {
         if (!imageBlob) return;
         setMode('analyzing');
 

@@ -22,12 +22,12 @@ export default function Profile() {
         }
     }, []);
 
-    const handleChange = (e: any) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleConditionChange = (condition: string) => {
+    const handleConditionChange = (condition: string): void => {
         setFormData(prev => {
             const current = prev.medical_conditions;
             if (current.includes(condition)) {
@@ -38,7 +38,7 @@ export default function Profile() {
         });
     };
 
-    const handleSubmit = (e: any) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         localStorage.setItem('userProfile', JSON.stringify(formData));
         router.push('/scan');

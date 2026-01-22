@@ -2,6 +2,14 @@
 import { useEffect, useState } from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
 
+interface AdviceData {
+    color: string;
+    status: string;
+    recommendation: string;
+    limit: string;
+    remaining: string;
+}
+
 interface AdviceProps {
     consumed: number;
     burned: number;
@@ -9,7 +17,7 @@ interface AdviceProps {
 }
 
 export default function AdaptiveAdvice({ consumed, burned, water }: AdviceProps) {
-    const [advice, setAdvice] = useState<any>(null);
+    const [advice, setAdvice] = useState<AdviceData | null>(null);
 
     useEffect(() => {
         // Debounce fetch

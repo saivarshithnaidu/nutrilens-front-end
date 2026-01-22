@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
-    // This file acts as a wild card proxy for auth GET requests (like /me)
+export async function GET(
+    req: NextRequest,
+    { params }: { params: Promise<{ path: string[] }> }
+): Promise<NextResponse> {
+    const { path: pathArray } = await params;
     const backendUrl = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
-    const path = params.path.join('/');
+    const path = pathArray.join('/');
 
     try {
         const token = req.headers.get('authorization');
@@ -12,14 +15,19 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
         });
         const data = await res.json();
         return NextResponse.json(data, { status: res.status });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
+export async function POST(
+    req: NextRequest,
+    { params }: { params: Promise<{ path: string[] }> }
+): Promise<NextResponse> {
+    const { path: pathArray } = await params;
     const backendUrl = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
-    const path = params.path.join('/');
+    const path = pathArray.join('/');
 
     try {
         const body = await req.json();
@@ -30,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
         });
 
         const text = await res.text();
-        let data;
+        let data: unknown;
         try {
             data = JSON.parse(text);
         } catch {
@@ -39,8 +47,9 @@ export async function POST(req: NextRequest, { params }: { params: { path: strin
         }
 
         return NextResponse.json(data, { status: res.status });
-    } catch (e: any) {
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         console.error("Proxy Error:", e);
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
